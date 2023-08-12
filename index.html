@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>GitHub File Uploader</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/filepond/4.19.0/filepond.min.js"></script>
+</head>
+<body>
+  <h1>GitHub File Uploader</h1>
+  <div id="filepond"></div>
+  <script>
+    $(function() {
+      // Initialize FilePond
+      var pond = FilePond.create(document.getElementById('filepond'), {
+        filepondDefaults: {
+          allowMultiple: true,
+          maxFileSize: 1000000,
+          acceptedFileTypes: ['*']
+        }
+      });
+
+      // Handle file uploads
+      pond.on('filepondfileadd', function(event) {
+        var file = event.file;
+        // Get the GitHub authentication code
+        var code = prompt('Enter your GitHub authentication code');
+
+        // Upload the file to the selected repository
+        $.ajax({
+          url: 'https://api.github.com/repos/<username>/<repo>/contents',
+          type: 'POST',
+          headers: {
+            Authorization: 'Bearer ' + code
+          },
+          data: {
+            path: file.name,
+            content: file.data
+          }
+        }).done(function() {
+          alert('File uploaded successfully!');
+        }).fail(function(error) {
+          alert(error);
+        });
+      });
+
+      // Handle login
+      var loginDialog = document.getElementById('login-dialog');
+      loginDialog.addEventListener('show.bs.modal', function() {
+        // Clear the username and password fields
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+      });
+
+      var loginButton = document.getElementById('login-button');
+      loginButton.addEventListener('click', function() {
+        // Get the selected login method
+        var loginMethod = document.getElementById('login-method').value;
+
+        // Log in to GitHub
+        if (loginMethod === 'github') {
+          var code = prompt('Enter your GitHub authentication code');
+          loginWithGitHub(code);
+        } else {
+          loginWithUsernameAndPassword();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
